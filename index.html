@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Meeting Room Display</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=80')
+    center / cover no-repeat;
+  color: white;
+  overflow: hidden;
+}
+
+/* OVERLAY */
+.overlay {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.65);
+  padding: 30px 60px;
+}
+
+/* HEADER */
+.header-left {
+  position: absolute;
+  top: 40px;
+  left: 60px;
+  font-size: 2.5rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  opacity: 0.9;
+}
+
+.header-right {
+  position: absolute;
+  top: 20px;
+  right: 60px;
+  text-align: right;
+}
+
+/* LOGO */
+.logo {
+  max-height: 130px;
+  margin-bottom: 2x;
+  opacity: 1;
+}
+
+/* JAM */
+#clock {
+  font-size: 6rem;
+  font-weight: 700;
+  line-height: 0.8;
+}
+
+#date {
+  font-size: 1.4rem;
+  opacity: 0.7;
+  margin-top: 5px;
+}
+
+/* CONTENT */
+.content {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  height: 100%;
+  align-items: center;
+}
+
+/* LEFT */
+.left {
+  padding-top: 90px;
+}
+
+.box {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(16px);
+  border-radius: 22px;
+  padding: 40px 50px;
+  border-left: 10px solid #4CAF50;
+  max-width: 900px;
+}
+
+#activeTitle {
+  font-size: 4.5rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+#activeTime {
+  font-size: 2rem;
+  margin-top: 15px;
+  opacity: 0.85;
+}
+
+/* RIGHT */
+.right {
+  padding-top: 120px;
+}
+
+.next {
+  border-top: 1px solid rgba(255, 249, 249, 0.5);
+  padding-top: 1px;
+}
+
+.next-title {
+  font-size: 2rem;
+  opacity: 0.7;
+  margin-bottom: 10px;
+}
+
+.upcoming-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.6rem;
+  margin-bottom: 10px;
+  opacity: 0.85;
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay">
+
+  <!-- NAMA RUANG -->
+  <div class="header-left">
+    MEETING ROOM BAWAKARAENG
+  </div>
+
+  <!-- JAM + LOGO -->
+  <div class="header-right">
+    <!-- LOGO PERUSAHAAN (OPSIONAL) -->
+    <img src="logo.png" class="logo" alt="Logo">
+
+    <div id="clock">00:00</div>
+    <div id="date">Kamis, 15 Januari</div>
+  </div>
+
+  <!-- KONTEN -->
+  <div class="content">
+
+    <!-- MEETING AKTIF -->
+    <div class="left">
+      <div class="box" id="activeBox">
+        <h1 id="activeTitle">Tersedia</h1>
+        <p id="activeTime"></p>
+      </div>
+    </div>
+
+    <!-- JADWAL BERIKUTNYA -->
+    <div class="right">
+      <div class="next">
+        <p class="next-title">Jadwal Berikutnya</p>
+        <div id="nextList"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================= -->
+<!-- MODE FULLSCREEN (OPSIONAL) -->
+<!-- ============================= -->
+<script>
+const ENABLE_FULLSCREEN = true; // ubah ke false jika tidak mau
+
+if (ENABLE_FULLSCREEN) {
+  document.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(()=>{});
+    }
+  });
+}
+</script>
+
+<!-- ============================= -->
+<!-- 🔽 TEMPATKAN SCRIPT GOOGLE SHEET / API ANDA DI SINI -->
+<!-- ============================= -->
+
+</body>
+</html>
+
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+
+    // MASUKKAN CONFIG ANDA DI SINI (Sama dengan admin)
+    const firebaseConfig = {
+        apiKey: "AIzaSyD6G7b17ObHBgfCMknL2M7EwMuwN4E7blQ",
+        authDomain: "ruang-meeting-dd617.firebaseapp.com",
+        databaseURL: "https://ruang-meeting-dd617-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "ruang-meeting-dd617",
+        storageBucket: "ruang-meeting-dd617.firebasestorage.app",
+        messagingSenderId: "247180404394",
+        appId: "1:247180404394:web:05295893047b5ec828d2d3",
+        measurementId: "G-FYT6SRHESX"
+
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    let allMeetings = [];
+
+    // Dengarkan perubahan data dari Firebase
+    onValue(ref(db, 'meetings'), (snapshot) => {
+        allMeetings = [];
+        snapshot.forEach(child => { allMeetings.push(child.val()); });
+        updateUI();
+    });
+
+    function updateUI() {
+        const now = new Date();
+        const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+        
+        document.getElementById('clock').innerText = timeStr;
+        document.getElementById('date').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+
+        // Filter jadwal yang belum selesai & urutkan
+        const upcoming = allMeetings
+            .filter(m => m.end > timeStr)
+            .sort((a,b) => a.start.localeCompare(b.start));
+
+        // Cek meeting aktif
+        const active = upcoming.find(m => timeStr >= m.start && timeStr <= m.end);
+        
+        if(active) {
+            document.getElementById('activeTitle').innerText = active.title;
+            document.getElementById('activeTime').innerText = active.start + " - " + active.end;
+            document.getElementById('activeBox').style.borderLeftColor = "#4CAF50";
+        } else {
+            document.getElementById('activeTitle').innerText = "Tersedia";
+            document.getElementById('activeTime').innerText = "Tidak ada meeting berlangsung";
+            document.getElementById('activeBox').style.borderLeftColor = "#fff";
+        }
+
+        // List jadwal mendatang
+        const nextList = document.getElementById('nextList');
+        nextList.innerHTML = "";
+        upcoming.filter(m => m !== active).forEach(m => {
+            nextList.innerHTML += `<div class="upcoming-item"><span>${m.title}</span><span>${m.start}</span></div>`;
+        });
+    }
+
+    setInterval(updateUI, 1000);
+</script>
+</body>
+</html>
