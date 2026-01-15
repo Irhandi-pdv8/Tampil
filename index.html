@@ -33,8 +33,18 @@ body {
   position: absolute;
   top: 40px;
   left: 60px;
-  font-size: 2.5rem;
-  font-weight: 600;
+  font-size: 3rem;
+  font-weight: 650;
+  letter-spacing: 1px;
+  opacity: 0.9;
+}
+
+.Sedang {
+  position: absolute;
+  top: 200px;
+  left: 60px;
+  font-size: 1.5rem;
+  font-weight: 500;
   letter-spacing: 1px;
   opacity: 0.9;
 }
@@ -106,7 +116,7 @@ body {
 }
 
 .next {
-  border-top: 1px solid rgba(255, 249, 249, 0.5);
+  border-top: 1px solid rgba(255, 255, 255, 0.884);
   padding-top: 1px;
 }
 
@@ -135,10 +145,14 @@ body {
     MEETING ROOM BAWAKARAENG
   </div>
 
+  <div class="Sedang">
+    Sedang berlangsung :
+  </div>
+
   <!-- JAM + LOGO -->
   <div class="header-right">
     <!-- LOGO PERUSAHAAN (OPSIONAL) -->
-    <img url="https://drive.google.com/file/d/13D7HLI3CdmxuBnFB11YnntupDyE_NmPq/view?usp=drive_link" class="logo" alt="Logo">
+    <img src="logo.png" class="logo" alt="Logo">
 
     <div id="clock">00:00</div>
     <div id="date">Kamis, 15 Januari</div>
@@ -149,7 +163,6 @@ body {
 
     <!-- MEETING AKTIF -->
     <div class="left">
-       <H1>Sedang berlangsung</H1>
       <div class="box" id="activeBox">
         <h1 id="activeTitle">Tersedia</h1>
         <p id="activeTime"></p>
@@ -254,7 +267,4 @@ if (ENABLE_FULLSCREEN) {
     setInterval(updateUI, 1000);
 </script>
 </body>
-
 </html>
-
-
